@@ -1,0 +1,53 @@
+{
+  "name": "bladepdf/spatie-laravel-pdf-driver",
+  "description": "Use BladePDF as a managed Chromium driver for Spatie Laravel PDF.",
+  "homepage": "https://bladepdf.com",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "bladepdf",
+    "laravel",
+    "pdf",
+    "spatie",
+    "laravel-pdf",
+    "pdf driver",
+    "chromium"
+  ],
+  "support": {
+    "docs": "https://docs.bladepdf.com/integrations/spatie-laravel-pdf",
+    "issues": "https://github.com/bladepdf/spatie-laravel-pdf-driver/issues",
+    "source": "https://github.com/bladepdf/spatie-laravel-pdf-driver"
+  },
+  "require": {
+    "php": "^8.2",
+    "bladepdf/laravel": "^1.0",
+    "spatie/laravel-pdf": "^2.10"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^9.0|^10.0|^11.0",
+    "phpunit/phpunit": "^10.5|^11.0|^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "BladePDF\\SpatieLaravelPdf\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "BladePDF\\SpatieLaravelPdf\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "BladePDF\\SpatieLaravelPdf\\BladePdfDriverServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "lint": "find src tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
