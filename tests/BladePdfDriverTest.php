@@ -49,7 +49,7 @@ final class BladePdfDriverTest extends TestCase
         $this->assertSame('window.invoiceReady === true', $fields['wait_function']);
         $this->assertSame([
             'printBackground' => true,
-            'format' => 'a4',
+            'format' => 'A4',
             'margin' => [
                 'top' => '10mm',
                 'right' => '12mm',
@@ -61,6 +61,7 @@ final class BladePdfDriverTest extends TestCase
             'pageRanges' => '1-3, 5',
             'tagged' => true,
         ], $fields['pdf_options']);
+        $this->assertSame('function', $fields['wait_until']);
     }
 
     public function test_custom_paper_size_takes_precedence_over_format(): void
@@ -80,6 +81,35 @@ final class BladePdfDriverTest extends TestCase
         $this->assertSame('210mm', $pdfOptions['width']);
         $this->assertSame('297mm', $pdfOptions['height']);
         $this->assertArrayNotHasKey('format', $pdfOptions);
+    }
+
+    public function test_it_normalizes_every_spatie_format_to_the_puppeteer_name(): void
+    {
+        $formats = [
+            'letter' => 'Letter',
+            'legal' => 'Legal',
+            'tabloid' => 'Tabloid',
+            'ledger' => 'Ledger',
+            'a0' => 'A0',
+            'a1' => 'A1',
+            'a2' => 'A2',
+            'a3' => 'A3',
+            'a4' => 'A4',
+            'a5' => 'A5',
+            'a6' => 'A6',
+        ];
+
+        foreach ($formats as $spatieFormat => $puppeteerFormat) {
+            $options = new PdfOptions();
+            $options->format = $spatieFormat;
+
+            $this->driver()->generatePdf('<p>Format</p>', null, null, $options);
+
+            $this->assertSame(
+                $puppeteerFormat,
+                $this->bladePdfClient->renders[array_key_last($this->bladePdfClient->renders)]['fields']['pdf_options']['format'],
+            );
+        }
     }
 
     public function test_portrait_orientation_is_forwarded_explicitly(): void

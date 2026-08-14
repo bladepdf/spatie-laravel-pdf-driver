@@ -70,7 +70,7 @@ final readonly class BladePdfDriver implements PdfDriver, SupportsReadiness
                 $options->paperSize['unit'] ?? 'mm',
             );
         } elseif ($options->format !== null) {
-            $render->format($options->format);
+            $render->format($this->normalizeFormat($options->format));
         }
 
         if ($options->margins !== null) {
@@ -102,9 +102,29 @@ final readonly class BladePdfDriver implements PdfDriver, SupportsReadiness
         }
 
         if ($options->waitForReady !== null) {
-            $render->waitFunction($options->waitForReady);
+            $render
+                ->waitUntil('function')
+                ->waitFunction($options->waitForReady);
         }
 
         return $render;
+    }
+
+    private function normalizeFormat(string $format): string
+    {
+        return match (strtolower($format)) {
+            'letter' => 'Letter',
+            'legal' => 'Legal',
+            'tabloid' => 'Tabloid',
+            'ledger' => 'Ledger',
+            'a0' => 'A0',
+            'a1' => 'A1',
+            'a2' => 'A2',
+            'a3' => 'A3',
+            'a4' => 'A4',
+            'a5' => 'A5',
+            'a6' => 'A6',
+            default => $format,
+        };
     }
 }
