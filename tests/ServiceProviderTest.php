@@ -38,7 +38,7 @@ final class ServiceProviderTest extends TestCase
         $this->assertSame('%PDF-1.7 bladepdf-driver-test', $pdf);
         $this->assertSame(
             '<h1>Named driver</h1>',
-            $this->bladePdfClient->renders[0]['fields']['html'],
+            $this->bladePdfClient->renders[0]->html,
         );
     }
 
@@ -50,7 +50,7 @@ final class ServiceProviderTest extends TestCase
         $this->assertSame('%PDF-1.7 bladepdf-driver-test', $pdf);
         $this->assertSame(
             '<h1>Default driver</h1>',
-            $this->bladePdfClient->renders[0]['fields']['html'],
+            $this->bladePdfClient->renders[0]->html,
         );
     }
 }

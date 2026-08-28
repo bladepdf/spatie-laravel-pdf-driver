@@ -20,7 +20,7 @@
   },
   "require": {
     "php": "^8.2",
-    "bladepdf/laravel": "^1.0",
+    "bladepdf/laravel": "^2.0",
     "spatie/laravel-pdf": "^2.10"
   },
   "require-dev": {

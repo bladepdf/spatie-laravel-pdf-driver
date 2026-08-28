@@ -22,7 +22,7 @@ This package registers BladePDF as a custom driver for [Spatie Laravel PDF](http
 ## Installation
 
 ```bash
-composer require bladepdf/spatie-laravel-pdf-driver
+composer require bladepdf/spatie-laravel-pdf-driver:^2.0
 ```
 
 Add your BladePDF API key:
@@ -100,13 +100,23 @@ See the [full integration guide](https://docs.bladepdf.com/integrations/spatie-l
 
 ## Testing
 
-Spatie's `Pdf::fake()` continues to work because it fakes the builder before a driver is invoked. To exercise this driver in an integration test, fake the BladePDF HTTP request with Laravel's `Http::fake()`.
+Spatie's `Pdf::fake()` continues to work because it fakes the builder before a driver is invoked. For driver-level tests, bind a fake implementation of `BladePDF\Contracts\RenderClient`; the immutable `BladePDF\RenderRequest` then exposes the exact core request produced by the integration.
 
 Run this package's test suite with:
 
 ```bash
 composer test
 ```
+
+## Upgrading from 1.x
+
+Driver 2.x requires `bladepdf/laravel:^2.0`; driver 1.x remains paired with the Laravel package's 1.x line. Normal Spatie calls, the `bladepdf` driver name, option mapping, and readiness behavior do not change.
+
+```bash
+composer require bladepdf/spatie-laravel-pdf-driver:^2.0 bladepdf/laravel:^2.0 --with-all-dependencies
+```
+
+The driver still depends only on `BladePdfFactory`. It does not construct the core client or asset resolver, so published Laravel asset roots apply equally to native facade and Spatie renders.
 
 ## License
 

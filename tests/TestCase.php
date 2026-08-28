@@ -4,23 +4,25 @@ declare(strict_types=1);
 
 namespace BladePDF\SpatieLaravelPdf\Tests;
 
-use BladePDF\Laravel\BladePdfClient;
+use BladePDF\Contracts\RenderClient;
 use BladePDF\Laravel\BladePdfServiceProvider;
-use BladePDF\Laravel\RenderResult;
+use BladePDF\RenderRequest;
+use BladePDF\RenderResult;
+use BladePDF\RenderSubmission;
 use BladePDF\SpatieLaravelPdf\BladePdfDriverServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\LaravelPdf\PdfServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
-    protected CapturingBladePdfClient $bladePdfClient;
+    protected CapturingRenderClient $bladePdfClient;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->bladePdfClient = new CapturingBladePdfClient();
-        $this->app->instance(BladePdfClient::class, $this->bladePdfClient);
+        $this->bladePdfClient = new CapturingRenderClient();
+        $this->app->instance(RenderClient::class, $this->bladePdfClient);
     }
 
     protected function getPackageProviders($app): array
@@ -41,27 +43,22 @@ abstract class TestCase extends Orchestra
     }
 }
 
-final class CapturingBladePdfClient extends BladePdfClient
+final class CapturingRenderClient implements RenderClient
 {
-    /**
-     * @var list<array{fields:array<string, mixed>,assets:array<int, mixed>}>
-     */
+    /** @var list<RenderRequest> */
     public array $renders = [];
 
-    public function __construct()
+    public function render(RenderRequest $request): RenderResult
     {
-    }
-
-    public function render(array $fields, array $assets = []): RenderResult
-    {
-        $this->renders[] = [
-            'fields' => array_filter(
-                $fields,
-                static fn (mixed $value): bool => $value !== null,
-            ),
-            'assets' => $assets,
-        ];
+        $this->renders[] = $request;
 
         return new RenderResult('%PDF-1.7 bladepdf-driver-test');
+    }
+
+    public function renderAsync(RenderRequest $request): RenderSubmission
+    {
+        $this->renders[] = $request;
+
+        return new RenderSubmission('request-async-test');
     }
 }

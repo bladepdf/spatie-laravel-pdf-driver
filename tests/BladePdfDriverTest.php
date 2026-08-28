@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BladePDF\SpatieLaravelPdf\Tests;
 
+use BladePDF\Assets\AssetResolver;
+use BladePDF\Laravel\BladePdfFactory;
 use BladePDF\SpatieLaravelPdf\BladePdfDriver;
 use BladePDF\SpatieLaravelPdf\Exceptions\UnsupportedReadinessTimeoutException;
 use Spatie\LaravelPdf\Enums\Orientation;
@@ -37,7 +39,7 @@ final class BladePdfDriverTest extends TestCase
 
         $this->assertSame('%PDF-1.7 bladepdf-driver-test', $pdf);
 
-        $fields = $this->bladePdfClient->renders[0]['fields'];
+        $fields = $this->bladePdfClient->renders[0]->fields();
 
         $this->assertSame(['type' => 'html'], $fields['source']);
         $this->assertSame('<main>Invoice</main>', $fields['html']);
@@ -76,7 +78,7 @@ final class BladePdfDriverTest extends TestCase
 
         $this->driver()->generatePdf('<p>Custom paper</p>', null, null, $options);
 
-        $pdfOptions = $this->bladePdfClient->renders[0]['fields']['pdf_options'];
+        $pdfOptions = $this->bladePdfClient->renders[0]->pdfOptions;
 
         $this->assertSame('210mm', $pdfOptions['width']);
         $this->assertSame('297mm', $pdfOptions['height']);
@@ -107,7 +109,7 @@ final class BladePdfDriverTest extends TestCase
 
             $this->assertSame(
                 $puppeteerFormat,
-                $this->bladePdfClient->renders[array_key_last($this->bladePdfClient->renders)]['fields']['pdf_options']['format'],
+                $this->bladePdfClient->renders[array_key_last($this->bladePdfClient->renders)]->pdfOptions['format'],
             );
         }
     }
@@ -120,7 +122,7 @@ final class BladePdfDriverTest extends TestCase
         $this->driver()->generatePdf('<p>Portrait</p>', null, null, $options);
 
         $this->assertFalse(
-            $this->bladePdfClient->renders[0]['fields']['pdf_options']['landscape'],
+            $this->bladePdfClient->renders[0]->pdfOptions['landscape'],
         );
     }
 
@@ -155,6 +157,37 @@ final class BladePdfDriverTest extends TestCase
         $this->expectExceptionMessage('per-render timeout of 5000 ms');
 
         $this->driver()->generatePdf('<p>Ready</p>', null, null, $options);
+    }
+
+    public function test_spatie_html_uses_the_laravel_configured_core_asset_pipeline(): void
+    {
+        $public = sys_get_temp_dir().'/bladepdf-spatie-public-'.uniqid('', true);
+        mkdir($public.'/css', 0777, true);
+        file_put_contents($public.'/logo.png', 'image-bytes');
+        file_put_contents($public.'/css/pdf.css', 'body{background:url("../logo.png")}');
+
+        config()->set('bladepdf.auto_resolve_assets', true);
+        config()->set('bladepdf.document_root', $public);
+        config()->set('bladepdf.asset_roots', [$public]);
+
+        $this->app->forgetInstance(AssetResolver::class);
+        $this->app->forgetInstance(BladePdfFactory::class);
+        $this->app->forgetInstance('bladepdf');
+        $this->app->forgetInstance(BladePdfDriver::class);
+        $this->app->forgetInstance('laravel-pdf.driver.bladepdf');
+
+        $this->driver()->generatePdf(
+            '<link rel="stylesheet" href="/css/pdf.css"><img src="/logo.png">',
+            null,
+            null,
+            new PdfOptions(),
+        );
+
+        $request = $this->bladePdfClient->renders[0];
+
+        $this->assertStringContainsString('asset:///', (string) $request->html);
+        $this->assertCount(2, $request->assets);
+        $this->assertSame(['text/css', 'image/png'], array_column($request->assets, 'mimeType'));
     }
 
     private function driver(): BladePdfDriver
